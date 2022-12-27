@@ -1,0 +1,6 @@
+variables:
+  service_connection: 'service_connection_name_associated_with_acr'
+  image_repository: 'repo_name'
+  container_registry: 'container_registry_url'
+  dockerfilePath: '$(Build.SourcesDirectory)/directory/Dockerfile'
+  tag: 'latest or $(Build.BuildId) or someother value'
