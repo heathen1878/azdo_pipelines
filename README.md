@@ -7,7 +7,7 @@ Example usage
 ```yaml
 ...
 steps:
-    - template: Docker/docker_build.yml
+    - template: docker_build/docker_build.yml
       parameters:
         acr: $(container_registry)
         dockerfile_path: $(dockerfile_path)
