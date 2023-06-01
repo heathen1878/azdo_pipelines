@@ -1,0 +1,32 @@
+parameters:
+- name: automation_user
+  type: string
+- name: automation_password
+  type: string
+- name: tenant
+  type: string
+- name: operation
+  type: string
+  values:
+  - login
+  - logout
+
+steps:
+- task: Bash@3
+  condition: always()
+  displayName: '${{ parameters.operation }} Azure tenant ${{ parameters.tenant }}'
+  inputs:
+    failOnStdErr: true
+    script: |
+
+      case ${{ parameters.operation }} in
+        login)
+          az login -u ${{ parameters.automation_user }} --service-principal --tenant ${{ parameters.tenant }} -p ${{ parameters.automation_password }} --output none
+        ;;
+
+        logout)
+          az logout --only-show-errors
+        ;;
+      esac
+
+    targetType: 'inline'
