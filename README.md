@@ -2,14 +2,27 @@
 
 A collection of Azure DevOps pipeline template tasks, jobs and stages and example application of those templates.
 
-## Tasks
+<!-- vscode-markdown-toc -->
+* 1. [Tasks](#Tasks)
+* 2. [Jobs](#Jobs)
+* 3. [Stages](#Stages)
+
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+## 1. <a name='Tasks'></a>Tasks
 
 _example usage of these tasks can be found within the jobs or stages folder_
 
-- auth pipelines
-  - uses az login and az logout to control 
-- build and test a dot net core application
-  - would be useful in a PR pipeline to test an application is passing prior to merging in main. _Learnt this at an Microsoft OpenHack event_.
+* auth pipelines
+  * uses az login and az logout to control
+
+* build and test a dot net core application
+  * would be useful in a PR pipeline to test an application is passing prior to merging in main. _Learnt this at an Microsoft OpenHack event_.
+  
 - create a DevOps work item
   - WIP - _Learnt this at an Microsoft OpenHack event_.
 - deploy a Terraform module
@@ -29,7 +42,7 @@ _example usage of these tasks can be found within the jobs or stages folder_
 - validate module
   - - Runs __setup.sh__ to setup the environment being vaildated before running init, plan and apply against the config Terraform root module or init and plan against any other module
 
-## Jobs
+##  2. <a name='Jobs'></a>Jobs
 
 - validation
   - validates a given number of Terraform root modules by default config and web_app_behind_cloudflare
@@ -37,7 +50,7 @@ _example usage of these tasks can be found within the jobs or stages folder_
 - deployment
   - deploys a given number of Terraform root modules by default config and web_app_behind_cloudflare
 
-## Stages
+##  3. <a name='Stages'></a>Stages
 
 - full deployment
   - performs a full Terraform deployment across multiple environment. See example below
