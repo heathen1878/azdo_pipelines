@@ -1,0 +1,74 @@
+parameters:
+- name: key_vault
+  type: string
+- name: storage_account
+  type: string
+- name: terraform_version
+  type: string
+- name: namespace
+  type: string
+- name: environment
+  type: string
+- name: location
+  type: string
+- name: automation_user
+  type: string
+- name: automation_password
+  type: string
+- name: tenant
+  type: string
+
+jobs:
+- deployment: deploy_environment
+  displayName: "Deploy: ${{ parameters.namespace }}-${{ parameters.environment }} in ${{ parameters.location }}"
+  environment: ${{ parameters.environment }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - template: ../tasks/install_figlet.yml
+        - template: ../tasks/auth_pipeline.yml
+          parameters:
+            automation_user: ${{ parameters.automation_user }}
+            automation_password: ${{ parameters.automation_password }}
+            tenant: ${{ parameters.tenant }}
+            operation: login
+        - template: ../tasks/get_hosted_agent_ip.yml
+        - template: ../tasks/set_key_vault_acl.yml
+          parameters:
+            key_vault: ${{ parameters.key_vault }}
+            operation: Add
+        - template: ../tasks/set_storage_account_acl.yml
+          parameters:
+            storage_account: ${{ parameters.storage_account }}
+            operation: Add
+        - template: ../tasks/terraform_installer.yml
+          parameters:
+           terraform_version: ${{ parameters.terraform_version }}
+        - template: ../tasks/validate_module.yml
+          parameters:
+            namespace: ${{ parameters.namespace }}
+            environment: ${{ parameters.environment }}
+            location: ${{ parameters.location }}
+            module: config
+        - template: ../tasks/deploy_module.yml
+          parameters:
+            namespace: ${{ parameters.namespace }}
+            environment: ${{ parameters.environment }}
+            location: ${{ parameters.location }}
+            module: web_app
+        - template: ../tasks/set_key_vault_acl.yml
+          parameters:
+            key_vault: ${{ parameters.key_vault }}
+            operation: Remove
+        - template: ../tasks/set_storage_account_acl.yml
+          parameters:
+            storage_account: ${{ parameters.storage_account }}
+            operation: Remove  
+        - template: ../tasks/auth_pipeline.yml
+          parameters:
+            automation_user: ${{ parameters.automation_user }}
+            automation_password: ${{ parameters.automation_password }}
+            tenant: ${{ parameters.tenant }}
+            operation: logout

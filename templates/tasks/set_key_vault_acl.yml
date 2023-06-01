@@ -1,0 +1,34 @@
+parameters:
+- name: key_vault
+  type: string
+- name: operation
+  type: string
+  values:
+  - Add
+  - Remove
+
+steps:
+- task: Bash@3
+  condition: always()
+  displayName: 'Update ${{ parameters.key_vault }} acl'
+  inputs:
+    failOnStdErr: true
+    script: |
+
+      # Update the Key Vault ACL
+      case ${{ parameters.operation }} in
+        Add)
+          PARAMS="add --name ${{ parameters.key_vault }} --ip-address $(getip.IPADDR)"
+        ;;
+
+        Remove)
+          PARAMS="remove --name ${{ parameters.key_vault }} --ip-address $(getip.IPADDR)"
+        ;;
+      esac
+
+      az keyvault network-rule $PARAMS > /dev/null 2>&1
+
+      echo "Pausing for 60 seconds to ensure Key Vault ACL has been updated"
+      sleep 60
+  
+    targetType: 'inline'

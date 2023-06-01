@@ -1,0 +1,17 @@
+steps:
+- task: Bash@3
+  displayName: 'Load bash modules'
+  inputs:
+    failOnStdErr: true
+    script: | 
+
+      cd "$(System.DefaultWorkingDirectory)/terraform"
+      # Load functions
+      if [ -d ./scripts/functions ]; then
+        for file in ./scripts/functions/*.sh; do
+          echo "Loading module $file"
+          source "$file"
+        done
+      fi
+
+    targetType: 'inline'

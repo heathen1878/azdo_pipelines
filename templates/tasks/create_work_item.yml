@@ -1,0 +1,8 @@
+parameters:
+- name: work_item_type
+  type: string
+
+
+steps:
+- task: CreateWorkItem@1
+  displayName: "Create ${{ parameters.work_item_type }}"

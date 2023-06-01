@@ -1,0 +1,48 @@
+parameters:
+- name: dotnet_version
+  type: string
+- name: working_directory
+  type: string
+
+steps:
+- task: UeDotNet@2
+  displayName: "Setup .NET Core ${{ parameters.dotnet_version }}"
+  inputs:
+    packageType: "sdk"
+    version: ${{ parameters.dotnet_version }}
+- task: DotNetCoreCLI@2
+  displayName: "Restore dependencies"
+  inputs:
+    command: "restore"
+    projects: ${{ parameters.working_directory }}/*.sln
+    feedsToUse: "select"
+- task: DotNetCoreCLI@2
+  displayName: "Build"
+  inputs:
+    command: "build"
+    arguments: "--no-restore"
+    workingDirectory: ${{ parameters.working_directory }}
+- task: DotNetCoreCLI@2
+  displayName: "Run unit tests"
+  inputs:
+    command: "test"
+    arguments: '--no-build --filter "FullyQualifiedName~UnitTest" --logger "trx;LogFileName=UnitTestResults.trx" --results-directory ./TestResults'
+    workingDirectory: ${{ parameters.working_directory }}
+- task: CreatePRCommentTask@1
+  displayName: "Create PR comment"
+  condition: and(failed(), eq(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    AuthType: "system"
+    Comment: |
+      ### Unit Test `failure`
+      <details>
+      <summary>Pipeline details</summary>
+      
+      Pipeline: `$(Build.DefinitionName)`
+      Action: `$(Build.Reason)`
+      Job: `$(Build.JobName)`
+      PR: [$(System.PullRequest.PullRequestId)]($(System.PullRequest.SourceRepositoryURI)/pullrequest/$(System.PullRequest.PullRequestId))
+      </details>
+
+      Test details: [Run #$(Build.BuildId)]($(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab)
+      Pusher: @<$(Build.RequestedForId)>
