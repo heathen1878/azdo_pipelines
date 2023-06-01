@@ -1,0 +1,11 @@
+steps:
+- task: Bash@3
+  name: install_figlet
+  displayName: 'Install figlet'
+  inputs:
+    failOnStdErr: true
+    script: |
+      
+      sudo apt-get install figlet -y -qq
+
+    targetType: 'inline'

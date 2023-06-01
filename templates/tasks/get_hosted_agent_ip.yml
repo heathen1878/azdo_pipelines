@@ -1,0 +1,17 @@
+steps:
+- task: Bash@3
+  name: getip
+  displayName: 'Get hosted agent IP address'
+  inputs:
+    failOnStdErr: true
+    script: |
+
+      IP_ADDR=$(curl -s https://ifconfig.me/ip)
+
+      echo $IP_ADDR
+
+      echo "##vso[task.setvariable variable=IPADDR;isoutput=true]$IP_ADDR"
+
+      export IP_ADDR
+
+    targetType: 'inline'
