@@ -1,7 +1,0 @@
-variables:
-  service_connection: 'service_connection_name'
-  azdofeed: 'dev_ops_artifacts_feed'
-  modules: "'module_one','module_teo'"
-  azdo_service_url: 'dev_ops_url'
-  azdo_pat_token: ''
-  azdo_agent_pool: ''
