@@ -2,8 +2,6 @@
 
 A collection of Azure DevOps pipeline template tasks, jobs and stages and example application of those templates.
 
-[_TOC_]
-
 ## Tasks
 
 _example usage of these tasks can be found within the jobs or stages folder_
