@@ -1,0 +1,47 @@
+parameters:
+- name: namespace
+  type: string
+- name: environment
+  type: string
+- name: location
+  type: string
+- name: module
+  type: string
+
+steps:
+- task: Bash@3
+  displayName: 'Deploy ${{ parameters.module }} in environment ${{ parameters.namespace }}-${{ parameters.environment }} in location ${{ parameters.location }}'
+  inputs:
+    failOnStdErr: true
+    script: | 
+      
+      cd "$(System.DefaultWorkingDirectory)/terraform"
+      
+      # Load functions
+      if [ -d ./scripts/functions ]; then
+        for file in ./scripts/functions/*.sh; do
+          echo "Loading module $file"
+          source "$file"
+        done
+      fi
+
+      ARM_TENANT_ID=$(az account show | jq -rc '.tenantId')
+      TF_VAR_tenant_id="$ARM_TENANT_ID"
+      export TF_VAR_tenant_id
+      export ARM_TENANT_ID
+
+      source ./scripts/setup.sh ${{ parameters.namespace }}-${{ parameters.environment }} ${{ parameters.module }} ${{ parameters.location }}
+
+      source ./scripts/init.sh
+
+      source ./scripts/plan.sh
+      
+      # Check exit code from plan.sh
+      # 0 = no changes
+      # 1 = error
+      # 2 = changes
+      if [[ $EXITCODE == 2 ]]; then
+        source ./scripts/apply.sh
+      fi
+
+    targetType: 'inline'

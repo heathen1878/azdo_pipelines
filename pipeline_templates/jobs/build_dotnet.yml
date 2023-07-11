@@ -1,0 +1,19 @@
+parameters:
+- name: dotnet_version
+  type: string
+- name: working_directory
+  type: string
+
+jobs:
+- job: build_validation
+  displayName: "Build .NET application"
+  steps:
+  - template: ../tasks/install_dotnet_core_version.yml
+    parameters:
+      dotnet_version: ${{ parameters.dotnet_version }}
+  - template: ../tasks/dotnet_restore_dependencies.yml
+    parameters:
+      working_directory: ${{ parameters.working_directory }}
+  - template: ../tasks/dotnet_build.yml
+    parameters:
+      working_directory: ${{ parameters.working_directory }}

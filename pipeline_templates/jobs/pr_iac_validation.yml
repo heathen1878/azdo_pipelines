@@ -1,6 +1,8 @@
 parameters:
 - name: key_vault
   type: string
+- name: ssh_passphrase
+  type: string
 - name: storage_account
   type: string
 - name: terraform_version
@@ -19,10 +21,24 @@ parameters:
   type: string
 
 jobs:
-- job: validate_environment
-  displayName: "Validate: ${{ parameters.namespace }}-${{ parameters.environment }} in ${{ parameters.location }}"
+- job: build_validation
+  displayName: "PR build validation tasks"
   steps:
+  - template: ../tasks/checkout.yml
+    parameters:
+      project: 'PE Platform'
+      repo: 'terraform-azure-resource-groups'
+      path: 'terraform-azure-resource-groups'
   - template: ../tasks/install_figlet.yml
+  - task: Bash@3
+    displayName: "Get repo URI for PR comment"
+    name: get_pr_repo_uri
+    inputs:
+      failOnStdErr: true
+      script: |
+        echo "##vso[task.setvariable variable=collection;isoutput=true]$SYSTEM_COLLECTIONURI"
+        echo "##vso[task.setvariable variable=project;isoutput=true]$SYSTEM_TEAMPROJECT"
+      targetType: 'inline'
   - template: ../tasks/auth_pipeline.yml
     parameters:
       automation_user: ${{ parameters.automation_user }}
@@ -34,33 +50,38 @@ jobs:
     parameters:
       key_vault: ${{ parameters.key_vault }}
       operation: Add
-  - template: ../tasks/set_storage_account_acl.yml
-    parameters:
-      storage_account: ${{ parameters.storage_account }}
-      operation: Add
+  #- template: ../tasks/set_storage_account_acl.yml
+  #  parameters:
+  #    storage_account: ${{ parameters.storage_account }}
+  #    operation: Add
   - template: ../tasks/terraform_installer.yml
     parameters:
       terraform_version: ${{ parameters.terraform_version }}
-  - template: ../tasks/validate_module.yml
+  - template: ../tasks/install_terraform_code_analysis.yml
+  - template: ../tasks/terraform-lint.yml
     parameters:
       namespace: ${{ parameters.namespace }}
       environment: ${{ parameters.environment }}
       location: ${{ parameters.location }}
       module: config
-  - template: ../tasks/validate_module.yml
+  - template: ../tasks/terraform-lint.yml
     parameters:
       namespace: ${{ parameters.namespace }}
       environment: ${{ parameters.environment }}
       location: ${{ parameters.location }}
       module: web_app
+  - template: ../tasks/create_pr_comment.yml
+    parameters:
+      collection: $(get_pr_repo_uri.collection)
+      project: $(get_pr_repo_uri.project)
   - template: ../tasks/set_key_vault_acl.yml
     parameters:
       key_vault: ${{ parameters.key_vault }}
       operation: Remove
-  - template: ../tasks/set_storage_account_acl.yml
-    parameters:
-      storage_account: ${{ parameters.storage_account }}
-      operation: Remove  
+  #- template: ../tasks/set_storage_account_acl.yml
+  #  parameters:
+  #    storage_account: ${{ parameters.storage_account }}
+  #    operation: Remove  
   - template: ../tasks/auth_pipeline.yml
     parameters:
       automation_user: ${{ parameters.automation_user }}

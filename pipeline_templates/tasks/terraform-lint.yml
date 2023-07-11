@@ -1,0 +1,69 @@
+parameters:
+- name: namespace
+  type: string
+- name: environment
+  type: string
+- name: location
+  type: string
+- name: module
+  type: string
+
+steps:
+- task: Bash@3
+  name: terraform_lint_${{ parameters.module }}
+  displayName: 'Running Tflint, format check and validate on ${{ parameters.module }}'
+  inputs:
+    failOnStdErr: true
+    script: |
+
+      cd "$(System.DefaultWorkingDirectory)/terraform"
+     
+      # Load functions
+      if [ -d ./scripts/functions ]; then
+        for file in ./scripts/functions/*.sh; do
+          source "$file"
+        done
+      fi
+
+      ARM_TENANT_ID=$(az account show | jq -rc '.tenantId')
+      export ARM_TENANT_ID
+
+      source ./scripts/setup.sh ${{ parameters.namespace }}-${{ parameters.environment }} ${{ parameters.module }} ${{ parameters.location }}
+
+      source ./scripts/init.sh
+
+      tflint --init
+
+      tflint --chdir=$TERRAFORM_DEPLOYMENT --module
+      EXITCODE=$?
+
+      case $EXITCODE in 
+        0)
+          echo -e "$(green)NO ISSUES FOUND BY TFLINT$(default)"
+        ;;
+        1)
+          # Error
+        ;;
+        2)
+          echo -e "$(yellow)ISSUES FOUND BY TFLINT - REVIEW ABOVE$(default)"
+        ;;
+      esac
+
+      terraform -chdir=$TERRAFORM_DEPLOYMENT fmt -recursive -check -diff
+      EXITCODE=$?
+
+      case $EXITCODE in 
+        0)
+          echo -e "$(green)FORMATTING CHECK COMPLETE$(default)"
+        ;;
+        1)
+          # Error
+        ;;
+        2)
+          echo -e "$(yellow)FORMATING CHECK FOUND ISSUES - REVIEW ABOVE$(default)"
+        ;;
+      esac
+      
+      terraform -chdir=$TERRAFORM_DEPLOYMENT validate
+
+    targetType: 'inline'

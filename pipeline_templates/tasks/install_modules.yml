@@ -1,0 +1,22 @@
+parameters:
+- name: private_modules
+  type: string
+- name: public_modules
+  type: string
+- name: azdofeed
+  type: string
+
+steps:
+- task: PowerShell@2
+  displayName: "Install required modules"
+  inputs:
+    targetType: FilePath
+    filePath: $(System.DefaultWorkingDirectory)/pipeline_templates/powershell/install_modules.ps1
+    arguments:
+      -private_modules ${{ parameters.private_modules }}
+      -public_modules ${{ parameters.public_modules }}
+      -azdofeed ${{ parameters.azdofeed }}
+    failOnStderr: true
+    pwsh: true
+  env:
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)

@@ -1,0 +1,11 @@
+parameters:
+- name: working_directory
+  type: string
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: "Build"
+  inputs:
+    command: "build"
+    arguments: "--no-restore"
+    workingDirectory: ${{ parameters.working_directory }}
