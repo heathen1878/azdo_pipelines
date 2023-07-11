@@ -15,7 +15,9 @@ steps:
     failOnStdErr: true
     script: |
 
-      # Update the Key Vault ACL
+      echo "$(getip.IPADDR)/32"
+
+      # Update the storge account ACL
       case ${{ parameters.operation }} in
         Add)
           PARAMS="add --account-name ${{ parameters.storage_account }} --ip-address $(getip.IPADDR)"
@@ -28,7 +30,7 @@ steps:
 
       az storage account network-rule $PARAMS > /dev/null 2>&1    
 
-      echo "Pausing for 60 seconds to ensure Key Vault ACL has been updated"
+      echo "Pausing for 60 seconds to ensure Storage Account ACL has been updated"
       sleep 60
   
     targetType: 'inline'

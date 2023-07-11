@@ -1,0 +1,14 @@
+parameters:
+- name: project
+  type: string
+  default: PE%20Platform
+- name: repo
+  type: string
+- name: path
+  type: string
+
+steps:
+- checkout: git://${{ parameters.project }}/${{ parameters.repo }}
+  name: checkout_${{ parameters.repo }}
+  displayName: "Checkout the ${{ parameters.repo }} repository"
+  path: ${{ parameters.path }}

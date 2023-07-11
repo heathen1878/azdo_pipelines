@@ -1,0 +1,55 @@
+parameters:
+- name: azure_subscription_service_connection
+  type: string
+- name: web_app_type
+  type: string
+  values:
+  - webApp
+  - webAppLinux
+- name: application_name
+  type: string
+- name: deploy_to_slot
+  type: string
+- name: resource_group_name
+  type: string
+- name: slot_name
+  type: string
+  default: 'staging'
+- name: deployment_method
+  type: string
+  default: 'auto'
+
+steps:
+- task: Bash@3
+  name: test_deploy_to_slot_parameter
+  displayName: "Test whether to deploy to staging or production"
+  inputs:
+    failOnStdErr: true
+    script: |
+      if [ ${{ parameters.deploy_to_slot}} = 'yes' ]; then
+        echo "##vso[task.setvariable variable=deploy_to_slot]yes"
+      else
+        echo "##vso[task.setvariable variable=deploy_to_slot]no"
+      fi
+    targetType: 'inline'
+- task: AzureWebApp@1
+  displayName: "Deploy web app to production slot"
+  condition: eq(variables['deploy_to_slot'], 'no')
+  inputs:
+    azureSubscription: ${{ parameters.azure_subscription_service_connection }}
+    appType: ${{ parameters.web_app_type }}
+    appName: ${{ parameters.application_name }}
+    package: '$(Build.ArtifactStagingDirectory)/Output/*.zip'
+    deploymentMethod: ${{ parameters.deployment_method }}
+- task: AzureWebApp@1
+  displayName: "Deploy web app to ${{ parameters.slot_name }} slot"
+  condition: eq(variables['deploy_to_slot'], 'yes')
+  inputs:
+    azureSubscription: ${{ parameters.azure_subscription_service_connection }}
+    appType: ${{ parameters.web_app_type }}
+    appName: ${{ parameters.application_name }}
+    deployToSlotorASE: true
+    resourceGroupName: ${{ parameters.resource_group_name }}
+    slotName: ${{ parameters.slot_name }}
+    package: '$(Build.ArtifactStagingDirectory)/Output/*.zip'
+    deploymentMethod: ${{ parameters.deployment_method }}

@@ -1,0 +1,11 @@
+parameters:
+- name: working_directory
+  type: string
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: "Restore dependencies"
+  inputs:
+    command: "restore"
+    projects: "${{ parameters.working_directory }}/*.csproj"
+    feedsTouse: "select"

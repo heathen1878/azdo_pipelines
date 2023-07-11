@@ -1,0 +1,40 @@
+parameters:
+- name: service_connection
+  type: string
+- name: api_token
+  type: string
+- name: domain_names
+  type: string
+- name: contact_email_address
+  type: string
+- name: storage_account_id
+  type: string
+- name: key_vault_id
+  type: string
+- name: dns_provider
+  type: string
+- name: environment_subscription_id
+  type: string
+- name: staging
+  type: string
+  default: 1
+
+steps:
+- task: AzurePowerShell@4
+  displayName: Issue or Renew certificate
+  inputs:
+    azureSubscription: ${{ parameters.service_connection }}
+    scriptType: FilePath
+    scriptPath: pipeline_templates/powershell/new-acme-certificate.ps1
+    scriptArguments:
+      -api_token ${{ parameters.api_token }}
+      -domain_names ${{ parameters.domain_names }}
+      -contact_email_address ${{ parameters.contact_email_address }}
+      -storage_account_id ${{ parameters.storage_account_id }}
+      -key_vault_id ${{ parameters.key_vault_id }}
+      -dns_provider ${{ parameters.dns_provider }}
+      -environment_subscription_id ${{ parameters.environment_subscription_id }}
+      -staging ${{ parameters.staging }}
+    failOnStandardError: true
+    azurePowerShellVersion: latestVersion
+    pwsh: true

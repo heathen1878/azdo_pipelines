@@ -1,0 +1,33 @@
+parameters:
+- name: key_vault
+  type: string
+- name: key_vault_secret
+  type: string
+
+steps:
+- task: Bash@3
+  name: download_and_install_ssh_key
+  displayName: 'Download and Install SSH key for pulling Terraform modules'
+  inputs:
+    failOnStdErr: true
+    script: |
+      
+      az keyvault secret download --name ${{ parameters.key_vault_secret }} --vault-name ${{ parameters.key_vault }} --file ~/.ssh/azure_pipelines --encoding base64
+
+      chmod 700 ~/.ssh
+      chmod 600 ~/.ssh/*
+
+      passphrase=$(az keyvault secret show --name ${{ parameters.key_vault_secret }}-passphrase --vault-name ${{ parameters.key_vault }} --query [value] | jq -rc '.[]')
+
+      eval "$(ssh-agent -s)"
+
+      { sleep 1; echo "$passphrase"; } | script -q /dev/null -c 'ssh-add' ~/.ssh/azure_pipelines'
+
+      # configure ssh auth config
+      printf "Host ssh.dev.azure.com" > ~/.ssh/config
+      printf "\tHostName ssh.dev.azure.com\n" >> ~/.ssh/config
+      printf "\tUser git\n" >> ~/.ssh/config
+      printf "\tIdentityFile ~/.ssh/azure_pipelines\n" >> ~/.ssh/config
+      printf "\tAddKeysToAgent yes\n" >> ~/.ssh/config
+
+    targetType: 'inline'

@@ -1,0 +1,62 @@
+parameters:
+- name: namespace
+  type: string
+- name: environment
+  type: string
+- name: location
+  type: string
+- name: dotnet_version
+  type: string
+- name: working_directory
+  type: string
+- name: application_name
+  type: string
+- name: azure_subscription_service_connection
+  type: string
+- name: web_app_type
+  type: string
+  default: webApp
+  values:
+  - webApp
+  - webAppLinux
+- name: deploy_to_slot
+  type: string
+- name: resource_group_name
+  type: string
+- name: slot_name
+  type: string
+  default: 'staging'
+- name: deployment_method
+  type: string
+  default: 'auto'
+
+jobs:
+- deployment: deploy_environment
+  displayName: "Deploy web app for ${{ parameters.namespace }}-${{ parameters.environment }} in ${{ parameters.location }}"
+  environment: ${{ parameters.environment }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - template: ../tasks/install_dotnet_core_version.yml
+          parameters:
+            dotnet_version: ${{ parameters.dotnet_version }}
+        - template: ../tasks/dotnet_restore_dependencies.yml
+          parameters:
+            working_directory: ${{ parameters.working_directory }}
+        - template: ../tasks/dotnet_build.yml
+          parameters:
+            working_directory: ${{ parameters.working_directory }}
+        - template: ../tasks/dotnet_publish.yml
+          parameters:
+            working_directory: ${{ parameters.working_directory }}
+        - template: ../tasks/deploy_azure_web_app.yml
+          parameters:
+            azure_subscription_service_connection: ${{ parameters.azure_subscription_service_connection }}
+            web_app_type: ${{ parameters.web_app_type }}
+            application_name: ${{ parameters.application_name }}
+            deploy_to_slot: ${{ parameters.deploy_to_slot }}
+            resource_group_name: ${{ parameters.resource_group_name }}
+            slot_name: ${{ parameters.slot_name }}
+            deployment_method: ${{ parameters.deployment_method }}             

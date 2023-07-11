@@ -1,0 +1,10 @@
+parameters:
+- name: dotnet_version
+  type: string
+
+steps:
+- task: UseDotNet@2
+  displayName: "Setup .NET Core ${{ parameters.dotnet_version }}"
+  inputs:
+    packageType: "sdk"
+    version: ${{ parameters.dotnet_version }}

@@ -4,6 +4,6 @@ parameters:
   default: '1.4.5'
 
 steps:
-- task: TerraformInstaller@0
+- task: TerraformInstaller@1
   inputs:
     terraformVersion: ${{ parameters.terraform_version }}

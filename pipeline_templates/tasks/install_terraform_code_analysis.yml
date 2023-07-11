@@ -1,0 +1,11 @@
+steps:
+- task: Bash@3
+  name: install_tflint
+  displayName: 'Install tflint'
+  inputs:
+    failOnStdErr: true
+    script: |
+      
+      curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | sudo bash
+
+    targetType: 'inline'

@@ -1,8 +1,6 @@
 parameters:
 - name: namespace
   type: string
-- name: environment
-  type: string
 - name: location
   type: string
 - name: module
@@ -10,12 +8,13 @@ parameters:
 
 steps:
 - task: Bash@3
-  displayName: 'Validate ${{ parameters.module }} in environment ${{ parameters.namespace }}-${{ parameters.environment }} in location ${{ parameters.location }}'
+  displayName: 'Validate ${{ parameters.module }} for ${{ parameters.namespace }} in ${{ parameters.location }}'
   inputs:
     failOnStdErr: true
     script: | 
       
       cd "$(System.DefaultWorkingDirectory)/terraform"
+
       # Load functions
       if [ -d ./scripts/functions ]; then
         for file in ./scripts/functions/*.sh; do
@@ -25,9 +24,11 @@ steps:
       fi
 
       ARM_TENANT_ID=$(az account show | jq -rc '.tenantId')
+      TF_VAR_tenant_id="$ARM_TENANT_ID"
+      export TF_VAR_tenant_id
       export ARM_TENANT_ID
 
-      source ./scripts/setup.sh ${{ parameters.namespace }}-${{ parameters.environment }} ${{ parameters.module }} ${{ parameters.location }}
+      source ./scripts/setup.sh ${{ parameters.namespace }} ${{ parameters.module }} ${{ parameters.location }}
 
       source ./scripts/init.sh
 
@@ -37,7 +38,7 @@ steps:
       # 0 = no changes
       # 1 = error
       # 2 = changes
-      if [[ $EXITCODE == 2 ]] && [[ ${{ parameters.module }} == "config" ]]; then
+      if [[ $EXITCODE == 2 ]] && [[ ${{ parameters.module }} == "global_config" ]]; then
         # Apply config as it's needed by other root modules.
         source ./scripts/apply.sh
       fi    

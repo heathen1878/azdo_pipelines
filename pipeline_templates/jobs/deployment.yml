@@ -1,0 +1,52 @@
+parameters:
+- name: automation_password
+  type: string
+- name: automation_user
+  type: string
+- name: environment
+  type: string
+- name: key_vault
+  type: string
+- name: location
+  type: string
+- name: namespace
+  type: string
+- name: storage_account
+  type: string
+- name: tenant
+  type: string
+- name: terraform_version
+  type: string
+
+jobs:
+- deployment: deploy_environment_infra
+  displayName: "Deploy: ${{ parameters.namespace }}-${{ parameters.environment }} infrastructure in ${{ parameters.location }}"
+  environment: ${{ parameters.environment }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - template: ../tasks/install_figlet.yml
+        - template: ../tasks/auth_pipeline.yml
+          parameters:
+            automation_user: ${{ parameters.automation_user }}
+            automation_password: ${{ parameters.automation_password }}
+            tenant: ${{ parameters.tenant }}
+            operation: login
+        - template: ../tasks/get_hosted_agent_ip.yml
+        - template: ../tasks/terraform_installer.yml
+          parameters:
+            terraform_version: ${{ parameters.terraform_version }}
+        - template: ../tasks/validate_module.yml
+          parameters:
+            environment: ${{ parameters.environment }}
+            location: ${{ parameters.location }}
+            module: config
+            namespace: ${{ parameters.namespace }}
+        - template: ../tasks/deploy_module.yml
+          parameters:
+            environment: ${{ parameters.environment }}
+            location: ${{ parameters.location }}
+            module: infrastructure
+            namespace: ${{ parameters.namespace }}

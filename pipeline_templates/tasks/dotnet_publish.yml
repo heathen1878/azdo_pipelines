@@ -1,0 +1,14 @@
+parameters:
+- name: working_directory
+  type: string
+
+steps:
+- task: DotNetCoreCLI@2
+  displayName: "Publish"
+  inputs:
+    command: "publish"
+    publishWebProjects: false
+    projects: "${{ parameters.working_directory }}/*.csproj"
+    arguments: '-o $(Build.ArtifactStagingDirectory)/Output'
+    zipAfterPublish: true
+    modifyOutputPath: true

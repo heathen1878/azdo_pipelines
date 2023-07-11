@@ -1,0 +1,25 @@
+parameters:
+- name: collection
+  type: string
+- name: project
+  type: string
+
+steps:
+- task: CreatePRCommentTask@1
+  displayName: "Create PR comment for failed validation"
+  condition: and(failed(), eq(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    AuthType: "system"
+    Comment: |
+      ### Build validation failure
+      <details>
+      <summary>build validtion failure</summary>
+
+      Pipeline name: `$(Build.DefinitionName)`
+      Action: `$(Build.Reason)`
+      Job: `$(System.JobName)`
+      PR: [$(System.PullRequest.PullRequestId)]($(System.PullRequest.SourceRepositoryURI)/pullrequest/$(System.PullRequest.PullRequestId))
+      </details>
+
+      Test details: [Run $(Build.BuildId)](${{ parameters.collection }}${{ parameters.project }}/_build/results?buildId=$(Build.BuildId)&view=ms.vss-test-web.build-test-results-tab)
+      Pusher: @<$(Build.RequestedForId)>
